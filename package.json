@@ -1,0 +1,55 @@
+{
+  "name": "@kevinwang0316/cloudwatch",
+  "version": "1.0.0",
+  "description": "A library to help collect and flush metrics with async mode or flush as a bundle in the end of the function invacation.",
+  "scripts": {
+    "coveralls": "cat ./coverage/lcov.info | node node_modules/.bin/coveralls",
+    "unitTest": "jest",
+    "unitTestWatch": "jest --watch",
+    "unitTestCoverage": "jest --coverage",
+    "build": "babel src --out-dir distribution && uglifyjs distribution/CloudWatch.js -c -m -o distribution/CloudWatch.js"
+  },
+  "main": "./distribution/CloudWatch.js",
+  "author": "Kevin W.",
+  "license": "MIT",
+  "jest": {
+    "testEnvironment": "node",
+    "testPathIgnorePatterns": [
+      "/node_modules/"
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PengWang0316/CloudWatch.git"
+  },
+  "keywords": [
+    "JWT",
+    "JSON Web Token",
+    "Parser"
+  ],
+  "bugs": {
+    "url": "https://github.com/PengWang0316/CloudWatch/issues"
+  },
+  "homepage": "https://github.com/PengWang0316/CloudWatch#readme",
+  "dependencies": {
+    "@kevinwang0316/log": "^1.0.0"
+  },
+  "peerDependencies": {
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.2.3",
+    "@babel/core": "^7.2.0",
+    "@babel/preset-env": "^7.2.0",
+    "@babel/runtime": "^7.2.0",
+    "babel-core": "^7.0.0-bridge.0",
+    "babel-eslint": "^10.0.1",
+    "coveralls": "^3.0.2",
+    "eslint": "^5.12.0",
+    "eslint-config-airbnb": "^17.1.0",
+    "eslint-plugin-import": "^2.14.0",
+    "eslint-plugin-jsx-a11y": "^6.1.2",
+    "eslint-plugin-react": "^7.12.3",
+    "jest": "^23.6.0",
+    "uglify-js": "^3.4.9"
+  }
+}
