@@ -8,7 +8,9 @@ const cloudwatch = new AWS.CloudWatch();
 // Use a user customized name space or Lambda's log group name as default
 const namespace = process.env.name_space || process.env.AWS_LAMBDA_LOG_GROUP_NAME;
 // The format for async is MONITORING|value|unit|name|namespace|dimensions1, dimension2, ...
-const isAsyncMode = (process.env.async_metrics || 'false') === 'true'; // Check whether need to send metrics async for APIs
+// const isAsyncMode = (process.env.async_metrics || 'false') === 'true';
+// Check whether need to send metrics async for APIs
+const isAsyncMode = () => (process.env.async_metrics || 'false') === 'true';
 
 // the Lambda execution environment defines a number of env variables:
 // https://docs.aws.amazon.com/lambda/latest/dg/current-supported-versions.html
@@ -89,7 +91,7 @@ export const incrCount = (metricName, count) => {
   const internalCount = count || 1;
   // If under the async mode, use console.log to send a formated data to CloudWatch
   // The format is MONITORING|value|unit|name|namespace|dimensions1, dimension2, ...
-  if (isAsyncMode) console.log(`MONITORING|${internalCount}|count|${metricName}|${namespace}`);
+  if (isAsyncMode()) console.log(`MONITORING|${internalCount}|count|${metricName}|${namespace}`);
   else if (countMetrics[metricName]) {
     countMetrics[metricName] += internalCount;
   } else {
@@ -104,7 +106,7 @@ export const recordTimeInMillis = (metricName, ms) => {
 
   log.debug(`new execution time for [${metricName}] : ${ms} milliseconds`);
 
-  if (isAsyncMode) console.log(`MONITORING|${ms}|milliseconds|${metricName}|${namespace}`);
+  if (isAsyncMode()) console.log(`MONITORING|${ms}|milliseconds|${metricName}|${namespace}`);
   else if (timeMetrics[metricName]) {
     const metric = timeMetrics[metricName];
     metric.Sum += ms;
