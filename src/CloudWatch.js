@@ -66,8 +66,15 @@ export const flush = async () => {
 
   if (allDatum.length === 0) { return; }
 
-  const metricNames = allDatum.map(x => x.MetricName).join(',');
-  log.debug(`flushing [${allDatum.length}] metrics to CloudWatch: ${metricNames}`);
+  let metricNames = [];
+  let metricValues = [];
+  allDatum.forEach(x => {
+    metricNames.push(x.MetricName);
+    metricValues.push(x.Value);
+  });
+  metricNames = metricNames.join(',');
+  metricValues = metricValues.join(',');
+  log.debug(`flushing [${allDatum.length}] metrics to CloudWatch: ${metricNames} with values: ${metricValues}`);
 
   const params = {
     MetricData: allDatum,
@@ -76,7 +83,7 @@ export const flush = async () => {
 
   try {
     await cloudwatch.putMetricData(params).promise();
-    log.debug(`flushed [${allDatum.length}] metrics to CloudWatch: ${metricNames}`);
+    log.debug(`flushed [${allDatum.length}] metrics to CloudWatch: ${metricNames} with values: ${metricValues}`);
   } catch (err) {
     log.warn(`cloudn't flush [${allDatum.length}] CloudWatch metrics`, null, err);
   }
