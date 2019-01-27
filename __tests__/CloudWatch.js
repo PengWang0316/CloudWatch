@@ -48,9 +48,10 @@ describe('CloudWatch Test', () => {
     const result = await cloudwatch.flush();
 
     expect(result).toBeUndefined();
-    expect(log.debug).toHaveBeenCalledTimes(2);
-    expect(log.debug).toHaveBeenNthCalledWith(1, 'flushing [1] metrics to CloudWatch: my count with values: 1');
-    expect(log.debug).toHaveBeenLastCalledWith('flushed [1] metrics to CloudWatch: my count with values: 1');
+    expect(log.debug).toHaveBeenCalledTimes(3);
+    expect(log.debug).toHaveBeenNthCalledWith(1, 'flushing [1] metrics to CloudWatch: my count');
+    expect(log.debug).toHaveBeenNthCalledWith(2, 'flushed [1] metrics to CloudWatch: my count');
+    expect(log.debug).toHaveBeenLastCalledWith('{"MetricData":[{"MetricName":"my count","Dimensions":[{"Name":"Function","Value":"functionName"},{"Name":"Version","Value":"functionVersion"},{"Name":"Stage","Value":"stage"}],"Unit":"Count","Value":1}],"Namespace":"logGroupName"}');
     expect(log.warn).not.toHaveBeenCalled();
     // expect(mockPutMetricData).not.toHaveBeenCalled();
   });
@@ -86,18 +87,58 @@ describe('CloudWatch Test', () => {
     expect(console.log).toHaveBeenLastCalledWith('MONITORING|2|count|myMetricName|logGroupName');
     process.env.async_metrics = false;
   });
-
-  test('incrCount 1 count with sync mode', () => {
+``
+  test('incrCount 1 count with sync mode', async () => {
     cloudwatch.incrCount('myMetricName', 1);
 
     expect(console.log).not.toHaveBeenCalled();
 
-    cloudwatch.flush();
-    expect(log.debug).toHaveBeenLastCalledWith('flushing [1] metrics to CloudWatch: myMetricName with values: 1');
+    await cloudwatch.flush();
+    expect(log.debug).toHaveBeenLastCalledWith('{"MetricData":[{"MetricName":"myMetricName","Dimensions":[{"Name":"Function","Value":"functionName"},{"Name":"Version","Value":"functionVersion"},{"Name":"Stage","Value":"stage"}],"Unit":"Count","Value":1}],"Namespace":"logGroupName"}');
 
     cloudwatch.incrCount('myMetricName', 1);
     cloudwatch.incrCount('myMetricName', 2);
-    cloudwatch.flush();
-    expect(log.debug).toHaveBeenLastCalledWith('flushing [1] metrics to CloudWatch: myMetricName with values: 3');
+    await cloudwatch.flush();
+    expect(log.debug).toHaveBeenLastCalledWith('{"MetricData":[{"MetricName":"myMetricName","Dimensions":[{"Name":"Function","Value":"functionName"},{"Name":"Version","Value":"functionVersion"},{"Name":"Stage","Value":"stage"}],"Unit":"Count","Value":3}],"Namespace":"logGroupName"}');
+  });
+
+  test('recordTimeInMillis without ms and not equal 0', () => {
+    cloudwatch.recordTimeInMillis('metric name');
+
+    expect(log.debug).not.toHaveBeenCalled();
+  });
+
+  test('recordTimeInMillis with async mode', () => {
+    process.env.async_metrics = true;
+    cloudwatch.recordTimeInMillis('metric name', 0);
+
+    expect(log.debug).toHaveBeenCalledTimes(1);
+    expect(log.debug).toHaveBeenLastCalledWith('new execution time for [metric name] : 0 milliseconds');
+    expect(console.log).toHaveBeenCalledTimes(1);
+    expect(console.log).toHaveBeenLastCalledWith('MONITORING|0|milliseconds|metric name|logGroupName');
+
+    process.env.async_metrics = false;
+  });
+
+  test('recordTimeInMillis with sync mode one call', async () => {
+    cloudwatch.recordTimeInMillis('metric name', 100);
+
+    expect(log.debug).toHaveBeenCalledTimes(1);
+    expect(log.debug).toHaveBeenLastCalledWith('new execution time for [metric name] : 100 milliseconds');
+    expect(console.log).not.toHaveBeenCalled();
+
+    await cloudwatch.flush();
+    expect(log.debug).toHaveBeenCalledTimes(4);
+    expect(log.debug).toHaveBeenLastCalledWith('{"MetricData":[{"MetricName":"metric name","Dimensions":[{"Name":"Function","Value":"functionName"},{"Name":"Version","Value":"functionVersion"},{"Name":"Stage","Value":"stage"}],"Unit":"Milliseconds","StatisticValues":{"Maximum":100,"Minimum":100,"SampleCount":1,"Sum":100}}],"Namespace":"logGroupName"}');
+  });
+
+  test('recordTimeInMillis with sync mode multiple calls', async () => {
+    cloudwatch.recordTimeInMillis('metric name', 100);
+    cloudwatch.recordTimeInMillis('metric name', 300);
+    cloudwatch.recordTimeInMillis('metric name', 200);
+
+    await cloudwatch.flush();
+    expect(log.debug).toHaveBeenCalledTimes(6);
+    expect(log.debug).toHaveBeenLastCalledWith('{"MetricData":[{"MetricName":"metric name","Dimensions":[{"Name":"Function","Value":"functionName"},{"Name":"Version","Value":"functionVersion"},{"Name":"Stage","Value":"stage"}],"Unit":"Milliseconds","StatisticValues":{"Maximum":300,"Minimum":100,"SampleCount":3,"Sum":600}}],"Namespace":"logGroupName"}');
   });
 });
