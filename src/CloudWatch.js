@@ -66,15 +66,8 @@ export const flush = async () => {
 
   if (allDatum.length === 0) { return; }
 
-  let metricNames = [];
-  let metricValues = [];
-  allDatum.forEach(x => {
-    metricNames.push(x.MetricName);
-    metricValues.push(x.Value);
-  });
-  metricNames = metricNames.join(',');
-  metricValues = metricValues.join(',');
-  log.debug(`flushing [${allDatum.length}] metrics to CloudWatch: ${metricNames} with values: ${metricValues}`);
+  const metricNames = allDatum.map(x => x.MetricName).join(',');
+  log.debug(`flushing [${allDatum.length}] metrics to CloudWatch: ${metricNames}`);
 
   const params = {
     MetricData: allDatum,
@@ -83,7 +76,8 @@ export const flush = async () => {
 
   try {
     await cloudwatch.putMetricData(params).promise();
-    log.debug(`flushed [${allDatum.length}] metrics to CloudWatch: ${metricNames} with values: ${metricValues}`);
+    log.debug(`flushed [${allDatum.length}] metrics to CloudWatch: ${metricNames}`);
+    log.debug(JSON.stringify(params));
   } catch (err) {
     log.warn(`cloudn't flush [${allDatum.length}] CloudWatch metrics`, null, err);
   }
@@ -107,9 +101,7 @@ export const incrCount = (metricName, count) => {
 };
 
 export const recordTimeInMillis = (metricName, ms) => {
-  if (!ms && ms !== 0) {
-    return;
-  }
+  if (!ms && ms !== 0) return;
 
   log.debug(`new execution time for [${metricName}] : ${ms} milliseconds`);
 
