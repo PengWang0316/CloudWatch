@@ -125,11 +125,11 @@ export const recordTimeInMillis = (metricName, ms) => {
 
 export const trackExecTime = (metricName, f) => {
   if (!f || typeof f !== 'function') {
-    throw new Error('cloudWatch.trackExecTime requires a function, eg. () => 42');
+    throw new Error('cloudWatch.trackExecTime requires a function for the second parameter, eg. () => 1');
   }
 
   if (!metricName) {
-    throw new Error('cloudWatch.trackExecTime requires a metric name, eg. "CloudSearch-latency"');
+    throw new Error('cloudWatch.trackExecTime requires a metric name for the first parameter, eg. "CloudSearch-latency"');
   }
 
   const start = new Date().getTime();
