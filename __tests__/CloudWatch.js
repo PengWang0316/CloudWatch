@@ -1,5 +1,6 @@
 import AWSXray from 'aws-xray-sdk';
 import log from '@kevinwang0316/log';
+import sinon from 'sinon';
 
 process.env.AWS_LAMBDA_FUNCTION_NAME = 'functionName';
 process.env.AWS_LAMBDA_FUNCTION_VERSION = 'functionVersion';
@@ -67,6 +68,17 @@ describe('CloudWatch Test', () => {
     expect(result).toBeUndefined();
     expect(log.warn).toHaveBeenCalledTimes(1);
     expect(log.warn).toHaveBeenLastCalledWith('cloudn\'t flush [1] CloudWatch metrics', null, new Error('error message'));
+    // expect(mockPutMetricData).not.toHaveBeenCalled();
+  });
+
+  test('clear', async () => {
+    cloudwatch.incrCount('myMetricName', 2);
+    cloudwatch.clear();
+    const result = await cloudwatch.flush();
+
+    expect(result).toBeUndefined();
+    expect(log.debug).not.toHaveBeenCalled();
+    expect(log.warn).not.toHaveBeenCalled();
     // expect(mockPutMetricData).not.toHaveBeenCalled();
   });
 
@@ -140,5 +152,36 @@ describe('CloudWatch Test', () => {
     await cloudwatch.flush();
     expect(log.debug).toHaveBeenCalledTimes(6);
     expect(log.debug).toHaveBeenLastCalledWith('{"MetricData":[{"MetricName":"metric name","Dimensions":[{"Name":"Function","Value":"functionName"},{"Name":"Version","Value":"functionVersion"},{"Name":"Stage","Value":"stage"}],"Unit":"Milliseconds","StatisticValues":{"Maximum":300,"Minimum":100,"SampleCount":3,"Sum":600}}],"Namespace":"logGroupName"}');
+  });
+
+  test('trackExecTime without metricName', () => {
+    expect(() => cloudwatch.trackExecTime(null, () => {})).toThrowError();
+    expect(() => cloudwatch.trackExecTime(undefined, () => {})).toThrowError();
+    expect(() => cloudwatch.trackExecTime('', () => {})).toThrowError();
+  });
+
+  test('trackExecTime without function', () => {
+    expect(() => cloudwatch.trackExecTime('metricName')).toThrowError();
+    expect(() => cloudwatch.trackExecTime('metricName', null)).toThrowError();
+  });
+
+  test('trackExecTime with a non promise function', async () => {
+    const clock = sinon.useFakeTimers();
+    const result = cloudwatch.trackExecTime('trackName', () => 'result');
+    await cloudwatch.flush();
+
+    expect(result).toBe('result');
+    expect(log.debug).toHaveBeenLastCalledWith('{"MetricData":[{"MetricName":"trackName","Dimensions":[{"Name":"Function","Value":"functionName"},{"Name":"Version","Value":"functionVersion"},{"Name":"Stage","Value":"stage"}],"Unit":"Milliseconds","StatisticValues":{"Maximum":0,"Minimum":0,"SampleCount":1,"Sum":0}}],"Namespace":"logGroupName"}');
+    clock.restore();
+  });
+
+  test('trackExecTime with a promise function', async () => {
+    const clock = sinon.useFakeTimers();
+    const result = await cloudwatch.trackExecTime('trackName', () => new Promise(resolve => resolve('result')));
+    await cloudwatch.flush();
+
+    expect(result).toBe('result');
+    expect(log.debug).toHaveBeenLastCalledWith('{"MetricData":[{"MetricName":"trackName","Dimensions":[{"Name":"Function","Value":"functionName"},{"Name":"Version","Value":"functionVersion"},{"Name":"Stage","Value":"stage"}],"Unit":"Milliseconds","StatisticValues":{"Maximum":0,"Minimum":0,"SampleCount":1,"Sum":0}}],"Namespace":"logGroupName"}');
+    clock.restore();
   });
 });
