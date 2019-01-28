@@ -136,15 +136,15 @@ export const trackExecTime = (metricName, f) => {
   let end;
   const res = f();
   // anything with a 'then' function can be considered a Promise...
-  // http://stackoverflow.com/a/27746324/55074
-  if (!Object.prototype.hasOwnProperty.call(res, 'then')) {
-    end = new Date().getTime();
-    recordTimeInMillis(metricName, end - start);
-    return res;
+  if (typeof res === 'object' && 'then' in res) {
+    return res.then(x => {
+      end = new Date().getTime();
+      recordTimeInMillis(metricName, end - start);
+      return x;
+    });
   }
-  return res.then(x => {
-    end = new Date().getTime();
-    recordTimeInMillis(metricName, end - start);
-    return x;
-  });
+
+  end = new Date().getTime();
+  recordTimeInMillis(metricName, end - start);
+  return res;
 };
