@@ -1,6 +1,6 @@
 {
   "name": "@kevinwang0316/cloudwatch",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A library to help collect and flush metrics with async mode or flush as a bundle in the end of the function invacation.",
   "scripts": {
     "coveralls": "cat ./coverage/lcov.info | node node_modules/.bin/coveralls",
