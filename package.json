@@ -7,7 +7,7 @@
     "unitTest": "jest",
     "unitTestWatch": "jest --watch",
     "unitTestCoverage": "jest --coverage",
-    "build": "babel src --out-dir distribution && uglifyjs distribution/CloudWatch.js -c -m -o distribution/CloudWatch.js"
+    "build": "babel src --plugins @babel/plugin-transform-runtime --out-dir distribution && uglifyjs distribution/CloudWatch.js -c -m -o distribution/CloudWatch.js"
   },
   "main": "./distribution/CloudWatch.js",
   "author": "Kevin W.",
@@ -34,6 +34,7 @@
   },
   "homepage": "https://github.com/PengWang0316/CloudWatch#readme",
   "dependencies": {
+    "@babel/runtime": "^7.3.1",
     "@kevinwang0316/log": "^1.0.0"
   },
   "peerDependencies": {
@@ -42,8 +43,8 @@
   "devDependencies": {
     "@babel/cli": "^7.2.3",
     "@babel/core": "^7.2.0",
+    "@babel/plugin-transform-runtime": "^7.2.0",
     "@babel/preset-env": "^7.2.0",
-    "@babel/runtime": "^7.2.0",
     "aws-xray-sdk": "^2.2.0",
     "babel-core": "^7.0.0-bridge.0",
     "babel-eslint": "^10.0.1",
