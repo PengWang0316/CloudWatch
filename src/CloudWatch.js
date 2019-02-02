@@ -1,5 +1,5 @@
-const AWSXray = require('aws-xray-sdk');
-const log = require('@kevinwang0316/log');
+import AWSXray from 'aws-xray-sdk';
+import log from '@kevinwang0316/log';
 
 const AWS = AWSXray.captureAWS(require('aws-sdk')); // Use the X-Ray to capture all request makes through AWS sdk
 
@@ -59,7 +59,7 @@ const getTimeMetricDatum = () => {
   return metricDatum;
 };
 
-const flush = async () => {
+export const flush = async () => {
   const countDatum = getCountMetricDatum();
   const timeDatum = getTimeMetricDatum();
   const allDatum = countDatum.concat(timeDatum);
@@ -83,12 +83,12 @@ const flush = async () => {
   }
 };
 
-const clear = () => {
+export const clear = () => {
   countMetrics = {};
   timeMetrics = {};
 };
 
-const incrCount = (metricName, count) => {
+export const incrCount = (metricName, count) => {
   const internalCount = count || 1;
   // If under the async mode, use console.log to send a formated data to CloudWatch
   // The format is MONITORING|value|unit|name|namespace|dimensions1, dimension2, ...
@@ -100,7 +100,7 @@ const incrCount = (metricName, count) => {
   }
 };
 
-const recordTimeInMillis = (metricName, ms) => {
+export const recordTimeInMillis = (metricName, ms) => {
   if (!ms && ms !== 0) return;
 
   log.debug(`new execution time for [${metricName}] : ${ms} milliseconds`);
@@ -123,7 +123,7 @@ const recordTimeInMillis = (metricName, ms) => {
   }
 };
 
-const trackExecTime = (metricName, f) => {
+export const trackExecTime = (metricName, f) => {
   if (!f || typeof f !== 'function') {
     throw new Error('cloudWatch.trackExecTime requires a function for the second parameter, eg. () => 1');
   }
@@ -147,12 +147,4 @@ const trackExecTime = (metricName, f) => {
   end = new Date().getTime();
   recordTimeInMillis(metricName, end - start);
   return res;
-};
-
-module.exports = {
-  flush,
-  clear,
-  incrCount,
-  recordTimeInMillis,
-  trackExecTime,
 };
