@@ -70,4 +70,4 @@ log_level=ERROR
 
 # License
 
-Log is licensed under MIT License - see the [License file](https://github.com/PengWang0316/VerifyJWT/blob/master/LICENSE).
+CloudWatch is licensed under MIT License - see the [License file](https://github.com/PengWang0316/VerifyJWT/blob/master/LICENSE).
